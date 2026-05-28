@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -366,7 +367,8 @@ function generateExcel() {
         if (!isSkip) {
 
             data.push({
-                receipt_date: dateStr
+                receipt_date: dateStr,
+                review_content: ""
             });
 
             assignedCount++;
@@ -398,7 +400,8 @@ function generateExcel() {
 
     // 컬럼 넓이
     worksheet['!cols'] = [
-        { wch: 18 }
+        { wch: 18 },
+        { wch: 60 }
     ];
 
     const workbook =
@@ -421,3 +424,4 @@ function generateExcel() {
 
 </body>
 </html>
+
