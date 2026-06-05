@@ -1,169 +1,381 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>영수증 배정 일정 생성기</title>
+    <title>스마트 영수증 배정 일정 생성기</title>
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
         * {
             box-sizing: border-box;
+            letter-spacing: -0.3px;
         }
 
         body {
             margin: 0;
-            font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
-            background: #f4f6f9;
-            color: #222;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: #1e293b;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 30px 16px;
+            padding: 40px 16px;
         }
 
         .container {
             width: 100%;
-            max-width: 560px;
-            background: #fff;
-            border-radius: 20px;
-            padding: 32px;
+            max-width: 720px;
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 40px;
             box-shadow:
-                0 10px 30px rgba(0, 0, 0, 0.06),
-                0 2px 8px rgba(0, 0, 0, 0.04);
+                0 25px 50px -12px rgba(0, 0, 0, 0.08),
+                0 0 1px rgba(0, 0, 0, 0.04);
         }
 
         h2 {
-            margin: 0 0 28px;
+            margin: 0 0 6px;
             text-align: center;
             font-size: 28px;
-            font-weight: 700;
-            color: #111827;
-            letter-spacing: -0.5px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .sub-title {
+            text-align: center;
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 36px;
+            font-weight: 500;
         }
 
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .input-group label {
             display: block;
             margin-bottom: 8px;
             font-size: 14px;
-            font-weight: 600;
-            color: #374151;
+            font-weight: 700;
+            color: #334155;
         }
 
         .input-group input[type="date"],
         .input-group input[type="number"],
         .input-group input[type="text"] {
             width: 100%;
-            height: 48px;
-            padding: 0 14px;
-            border: 1px solid #d1d5db;
-            border-radius: 12px;
+            height: 52px;
+            padding: 0 18px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 14px;
             background: #fff;
-            font-size: 14px;
-            transition: all 0.2s ease;
+            font-size: 15px;
+            color: #0f172a;
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .input-group input:focus {
             outline: none;
             border-color: #2563eb;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
         }
 
         .card {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 16px;
-            padding: 18px;
-            margin-bottom: 20px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-weight: 800;
+            font-size: 15px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 🔘 전체 선택/해제 버튼 스타일 */
+        .btn-select-all {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-select-all:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+            color: #0f172a;
         }
 
         .toggle-label {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             font-size: 15px;
-            font-weight: 600;
-            color: #111827;
+            font-weight: 700;
+            color: #1e293b;
             cursor: pointer;
             margin-bottom: 14px;
+            user-select: none;
         }
 
-        .days-container {
+        .toggle-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #2563eb;
+            cursor: pointer;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 4px;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .radio-label input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #2563eb;
+            cursor: pointer;
+        }
+
+        /* 📅 주간 설정 단락 디자인 */
+        .calendar-week {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 8px;
-            margin-top: 12px;
         }
 
-        .day-label {
+        .calendar-day-box {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 14px 6px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 4px;
-            background: white;
-            border: 1px solid #dbe1ea;
-            border-radius: 10px;
-            padding: 10px 0;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.2s ease;
+            gap: 12px;
+            position: relative;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.5;
         }
 
-        .day-label:hover {
+        .day-name {
+            font-size: 13px;
+            font-weight: 800;
+            color: #64748b;
+        }
+        
+        .calendar-day-box.sun .day-name { color: #ef4444; }
+        .calendar-day-box.sat .day-name { color: #2563eb; }
+
+        .day-check-input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #2563eb;
+        }
+
+        .day-count-input {
+            width: 100%;
+            max-width: 56px;
+            height: 34px;
+            text-align: center;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            background: #ffffff;
+            transition: all 0.2s;
+        }
+
+        .day-count-unit {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: -8px;
+            font-weight: 600;
+        }
+
+        .calendar-day-box.active {
+            opacity: 1;
             border-color: #2563eb;
-            background: #eff6ff;
+            background: #f0f6ff;
+            box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.1);
+            transform: translateY(-2px);
+        }
+        .calendar-day-box.active.sun { border-color: #ef4444; background: #fff5f5; box-shadow: 0 8px 16px -4px rgba(239, 68, 68, 0.1); }
+        .calendar-day-box.active.sat { border-color: #2563eb; background: #f0f6ff; box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.1); }
+
+        .day-count-input:disabled {
+            background: #f1f5f9;
+            color: #94a3b8;
+            border-color: #e2e8f0;
+            font-weight: 500;
         }
 
         .hint {
-            margin-top: 8px;
+            margin-top: 12px;
             font-size: 12px;
-            line-height: 1.5;
-            color: #6b7280;
+            line-height: 1.6;
+            color: #64748b;
         }
 
-        button {
+        /* 🗓️ 월별 달력 다중 리스트 컨테이너 */
+        .preview-scroll-area {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .preview-calendar-wrapper {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .month-indicator {
+            font-size: 15px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 14px;
+            text-align: center;
+            background: #f1f5f9;
+            padding: 8px 0;
+            border-radius: 10px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .grid-header {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-align: center;
+            padding: 4px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .grid-header.sun { color: #ef4444; }
+        .grid-header.sat { color: #2563eb; }
+
+        .grid-day {
+            min-height: 64px;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 6px 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid transparent;
+        }
+
+        .grid-day .day-num {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+        }
+        .grid-day.sun .day-num { color: #ef4444; }
+        .grid-day.sat .day-num { color: #2563eb; }
+
+        .grid-day.has-count {
+            background: #f0f6ff;
+            border-color: #cbd5e1;
+        }
+        
+        .count-badge {
+            font-size: 11px;
+            font-weight: 800;
+            color: #ffffff;
+            background: #2563eb;
+            padding: 2px 6px;
+            border-radius: 6px;
+            text-align: center;
+            width: 90%;
+            box-shadow: 0 2px 4px rgba(37,99,235,0.2);
+            white-space: nowrap;
+        }
+        .grid-day.sun.has-count .count-badge {
+            background: #ef4444;
+            box-shadow: 0 2px 4px rgba(239,68,68,0.2);
+        }
+
+        .grid-day.empty-space {
+            background: transparent;
+            pointer-events: none;
+        }
+
+        .preview-empty {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+            padding: 30px 0;
+        }
+
+        button.btn-download {
             width: 100%;
-            height: 54px;
+            height: 58px;
             border: none;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border-radius: 16px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
-            transition: 0.2s ease;
-            margin-top: 8px;
+            transition: all 0.25s ease;
+            margin-top: 12px;
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.3);
         }
 
-        button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+        button.btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px -5px rgba(37, 99, 235, 0.45);
         }
 
-        button:active {
-            transform: translateY(0);
-        }
-
-        @media (max-width: 600px) {
-
-            .container {
-                padding: 24px 18px;
-            }
-
-            h2 {
-                font-size: 24px;
-            }
-
-            .days-container {
-                grid-template-columns: repeat(4, 1fr);
-            }
+        @media (max-width: 640px) {
+            .calendar-week { grid-template-columns: repeat(4, 1fr); }
+            .container { padding: 28px 20px; }
+            .grid-day { min-height: 54px; }
+            .count-badge { font-size: 9px; padding: 2px 3px; }
         }
     </style>
 </head>
@@ -173,255 +385,372 @@
 <div class="container">
 
     <h2>영수증 배정 일정 생성기</h2>
+    <div class="sub-title">요일별 달력 맞춤 설정</div>
 
     <div class="input-group">
         <label for="startDate">시작 날짜</label>
-        <input type="date" id="startDate" value="2026-05-29">
+        <input type="date" id="startDate" onchange="updatePreview()">
     </div>
 
     <div class="input-group">
         <label for="totalCount">총 건수</label>
-        <input type="number" id="totalCount" value="100">
-    </div>
-
-    <div class="input-group">
-        <label for="dailyCount">하루 배정 건수</label>
-        <input type="number" id="dailyCount" value="4">
+        <input type="number" id="totalCount" value="50" oninput="updatePreview()">
     </div>
 
     <div class="card">
+        <div class="card-title">⚙️ 건수 설정 방식</div>
+        <div class="radio-group">
+            <label class="radio-label">
+                <input type="radio" name="countMode" value="same" checked onclick="toggleMode()"> 
+                모든 요일 동일 배정
+            </label>
+            <label class="radio-label">
+                <input type="radio" name="countMode" value="custom" onclick="toggleMode()"> 
+                요일별 직접 지정
+            </label>
+        </div>
 
+        <div class="input-group" id="globalDailyCountGroup" style="margin-bottom:0; margin-top:18px;">
+            <label for="dailyCount" style="font-size:13px; color:#475569;">기본 하루 배정 건수</label>
+            <input type="number" id="dailyCount" value="3" oninput="updatePreview()">
+        </div>
+    </div>
+
+    <div class="card">
         <label class="toggle-label">
-            <input type="checkbox" id="excludeWeekends" checked>
-            주말 제외 (토 · 일)
+            <input type="checkbox" id="excludeWeekends" checked onchange="handleWeekendToggle()">
+            주말 제외 자동 적용 (토 · 일)
         </label>
 
-        <div class="input-group" style="margin-bottom:0;">
-            <label for="customHolidays" style="font-size:13px;">
-                추가 제외 날짜
+        <div class="input-group" style="margin-bottom:0; margin-top:14px;">
+            <label for="customHolidays" style="font-size:13px; color:#475569;">
+                추가 제외 날짜 (공휴일/휴무일)
             </label>
-
             <input
                 type="text"
                 id="customHolidays"
                 placeholder="예: 2026-10-05, 2026-10-06"
+                oninput="updatePreview()"
             >
-
-            <div class="hint">
-                공휴일이나 휴무일 등 제외할 날짜를 쉼표(,)로 구분해서 입력하세요.
-            </div>
         </div>
-
     </div>
 
     <div class="card">
-
-        <label style="font-weight:600; font-size:15px;">
-            작업 요일 선택
-        </label>
-
-        <div class="days-container">
-
-            <label class="day-label">
-                <input type="checkbox" class="work-day" value="1">
-                월
-            </label>
-
-            <label class="day-label">
-                <input type="checkbox" class="work-day" value="2">
-                화
-            </label>
-
-            <label class="day-label">
-                <input type="checkbox" class="work-day" value="3">
-                수
-            </label>
-
-            <label class="day-label">
-                <input type="checkbox" class="work-day" value="4">
-                목
-            </label>
-
-            <label class="day-label">
-                <input type="checkbox" class="work-day" value="5">
-                금
-            </label>
-
-            <label class="day-label">
-                <input type="checkbox" class="work-day" value="6">
-                토
-            </label>
-
-            <label class="day-label">
-                <input type="checkbox" class="work-day" value="0">
-                일
-            </label>
-
+        <div class="card-header-flex">
+            <div class="card-title">📅 주간 달력 설정</div>
+            <button class="btn-select-all" onclick="toggleSelectAllDays()">전체 선택/해제</button>
         </div>
-
-        <div class="hint">
-            원하는 요일만 체크하면 해당 요일에만 자동 배정됩니다.
+        
+        <div class="calendar-week">
+            <div class="calendar-day-box sun" id="box-0">
+                <span class="day-name">일</span>
+                <input type="checkbox" class="work-day" id="check-0" value="0" onchange="syncInputState(this)">
+                <input type="number" class="day-count-input" data-day="0" value="0" min="0" oninput="updatePreview()">
+                <span class="day-count-unit">건</span>
+            </div>
+            <div class="calendar-day-box active" id="box-1">
+                <span class="day-name">월</span>
+                <input type="checkbox" class="work-day" id="check-1" value="1" checked onchange="syncInputState(this)">
+                <input type="number" class="day-count-input" data-day="1" value="0" min="0" oninput="updatePreview()">
+                <span class="day-count-unit">건</span>
+            </div>
+            <div class="calendar-day-box active" id="box-2">
+                <span class="day-name">화</span>
+                <input type="checkbox" class="work-day" id="check-2" value="2" checked onchange="syncInputState(this)">
+                <input type="number" class="day-count-input" data-day="2" value="0" min="0" oninput="updatePreview()">
+                <span class="day-count-unit">건</span>
+            </div>
+            <div class="calendar-day-box active" id="box-3">
+                <span class="day-name">수</span>
+                <input type="checkbox" class="work-day" id="check-3" value="3" checked onchange="syncInputState(this)">
+                <input type="number" class="day-count-input" data-day="3" value="0" min="0" oninput="updatePreview()">
+                <span class="day-count-unit">건</span>
+            </div>
+            <div class="calendar-day-box active" id="box-4">
+                <span class="day-name">목</span>
+                <input type="checkbox" class="work-day" id="check-4" value="4" checked onchange="syncInputState(this)">
+                <input type="number" class="day-count-input" data-day="4" value="0" min="0" oninput="updatePreview()">
+                <span class="day-count-unit">건</span>
+            </div>
+            <div class="calendar-day-box active" id="box-5">
+                <span class="day-name">금</span>
+                <input type="checkbox" class="work-day" id="check-5" value="5" checked onchange="syncInputState(this)">
+                <input type="number" class="day-count-input" data-day="5" value="0" min="0" oninput="updatePreview()">
+                <span class="day-count-unit">건</span>
+            </div>
+            <div class="calendar-day-box sat" id="box-6">
+                <span class="day-name">토</span>
+                <input type="checkbox" class="work-day" id="check-6" value="6" onchange="syncInputState(this)">
+                <input type="number" class="day-count-input" data-day="6" value="0" min="0" oninput="updatePreview()">
+                <span class="day-count-unit">건</span>
+            </div>
         </div>
-
     </div>
 
-    <button onclick="generateExcel()">
-        엑셀 다운로드
+    <div class="card">
+        <div class="card-title">👀 배정 일정 달력 미리보기 (연속 자동 달력)</div>
+        <div id="previewCalendarWrapper" class="preview-scroll-area">
+            <div class="preview-empty">시작 날짜를 선택하시면 실제 달력 모형 일정표가 계산됩니다.</div>
+        </div>
+    </div>
+
+    <button class="btn-download" onclick="generateExcel()">
+        엑셀 다운로드 ⚡
     </button>
 
 </div>
 
 <script>
+window.onload = function() {
+    const checkboxes = document.querySelectorAll('.work-day');
+    checkboxes.forEach(cb => updateBoxStyle(cb));
+    toggleMode();
+    handleWeekendToggle();
+    updatePreview();
+};
 
-function generateExcel() {
+function toggleMode() {
+    const mode = document.querySelector('input[name="countMode"]:checked').value;
+    const globalGroup = document.getElementById('globalDailyCountGroup');
+    const dayInputs = document.querySelectorAll('.day-count-input');
 
-    const startDateVal =
-        document.getElementById('startDate').value;
+    if (mode === 'same') {
+        globalGroup.style.display = 'block';
+        dayInputs.forEach(input => input.disabled = true);
+    } else {
+        globalGroup.style.display = 'none';
+        document.querySelectorAll('.work-day').forEach(cb => syncInputState(cb));
+    }
+    updatePreview();
+}
 
-    const totalCount =
-        parseInt(document.getElementById('totalCount').value);
+// 🔘 전체선택/해제 토글 스크립트
+let allSelectedState = true;
+function toggleSelectAllDays() {
+    const checkboxes = document.querySelectorAll('.work-day');
+    allSelectedState = !allSelectedState;
+    checkboxes.forEach(cb => {
+        cb.checked = allSelectedState;
+        syncInputState(cb);
+    });
+    updatePreview();
+}
 
-    const dailyCount =
-        parseInt(document.getElementById('dailyCount').value);
+function updateBoxStyle(checkbox) {
+    const dayVal = checkbox.value;
+    const box = document.getElementById(`box-${dayVal}`);
+    if (checkbox.checked) box.classList.add('active');
+    else box.classList.remove('active');
+}
 
-    const excludeWeekends =
-        document.getElementById('excludeWeekends').checked;
+function syncInputState(checkbox) {
+    const mode = document.querySelector('input[name="countMode"]:checked').value;
+    const dayVal = checkbox.value;
+    const matchingInput = document.querySelector(`.day-count-input[data-day="${dayVal}"]`);
+    
+    updateBoxStyle(checkbox);
 
-    const customHolidaysInput =
-        document.getElementById('customHolidays').value;
+    if (mode === 'custom' && checkbox.checked) {
+        matchingInput.disabled = false;
+    } else {
+        matchingInput.disabled = true;
+    }
+    updatePreview();
+}
 
-    const customHolidays = customHolidaysInput
-        .split(',')
-        .map(d => d.trim())
-        .filter(d => d !== "");
+function handleWeekendToggle() {
+    const excludeWeekends = document.getElementById('excludeWeekends').checked;
+    if (excludeWeekends) {
+        const satCheck = document.getElementById('check-6');
+        const sunCheck = document.getElementById('check-0');
+        satCheck.checked = false;
+        sunCheck.checked = false;
+        syncInputState(satCheck);
+        syncInputState(sunCheck);
+    }
+    updatePreview();
+}
 
-    const selectedDays =
-        Array.from(document.querySelectorAll('.work-day:checked'))
-        .map(el => parseInt(el.value));
+function calculateSchedule() {
+    const startDateVal = document.getElementById('startDate').value;
+    const totalCount = parseInt(document.getElementById('totalCount').value);
+    const mode = document.querySelector('input[name="countMode"]:checked').value;
+    const excludeWeekends = document.getElementById('excludeWeekends').checked;
+    
+    const customHolidaysInput = document.getElementById('customHolidays').value;
+    const customHolidays = customHolidaysInput.split(',').map(d => d.trim()).filter(d => d !== "");
 
-    if (!startDateVal ||
-        isNaN(totalCount) ||
-        isNaN(dailyCount)) {
+    if (!startDateVal || isNaN(totalCount) || totalCount <= 0) return null;
 
-        alert("모든 값을 올바르게 입력해주세요.");
+    const selectedDays = Array.from(document.querySelectorAll('.work-day:checked')).map(el => parseInt(el.value));
+    if (selectedDays.length === 0) return [];
+
+    const dayCountMap = {};
+    if (mode === 'same') {
+        const dailyCount = parseInt(document.getElementById('dailyCount').value) || 0;
+        selectedDays.forEach(day => dayCountMap[day] = dailyCount);
+    } else {
+        selectedDays.forEach(day => {
+            const inputVal = parseInt(document.querySelector(`.day-count-input[data-day="${day}"]`).value);
+            dayCountMap[day] = isNaN(inputVal) ? 0 : inputVal;
+        });
+    }
+
+    const scheduleSummary = {}; 
+    let currentDate = new Date(startDateVal);
+    let assignedCount = 0;
+    let safetyCounter = 0;
+
+    while (assignedCount < totalCount && safetyCounter < 3000) {
+        safetyCounter++;
+        const yyyy = currentDate.getFullYear();
+        const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(currentDate.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+        const dayOfWeek = currentDate.getDay();
+
+        let isSkip = false;
+        if (excludeWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) isSkip = true;
+        if (!isSkip && customHolidays.includes(dateStr)) isSkip = true;
+        if (!isSkip && (!selectedDays.includes(dayOfWeek) || !dayCountMap[dayOfWeek] || dayCountMap[dayOfWeek] <= 0)) isSkip = true;
+
+        if (!isSkip) {
+            const allowedTodayCount = dayCountMap[dayOfWeek];
+            const linesToInsert = Math.min(allowedTodayCount, totalCount - assignedCount);
+            if (linesToInsert > 0) {
+                scheduleSummary[dateStr] = linesToInsert;
+                assignedCount += linesToInsert;
+            }
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    return scheduleSummary;
+}
+
+// 🗓️ [대폭 수정] 배정이 완전히 끝날 때까지 포함된 모든 월을 구해서 동적 달력 생성
+function updatePreview() {
+    const wrapper = document.getElementById('previewCalendarWrapper');
+    const scheduleMap = calculateSchedule();
+
+    if (scheduleMap === null) {
+        wrapper.innerHTML = '<div class="preview-empty">시작 날짜를 선택하시면 실제 달력 모형 일정표가 계산됩니다.</div>';
+        return;
+    }
+    if (Object.keys(scheduleMap).length === 0) {
+        wrapper.innerHTML = '<div class="preview-empty" style="color:#ef4444;">⚠️ 배정 가능한 요일이 없거나 세부 건수가 설정되지 않았습니다.</div>';
         return;
     }
 
-    if (selectedDays.length === 0) {
+    // 배정된 날짜들의 고유한 년-월 리스트 추출하기
+    const activeDates = Object.keys(scheduleMap).sort();
+    if(activeDates.length === 0) return;
 
-        alert("최소 하나 이상의 작업 요일을 선택해야 합니다.");
+    const startStr = activeDates[0];
+    const endStr = activeDates[activeDates.length - 1];
+
+    let startMeta = new Date(startStr);
+    let endMeta = new Date(endStr);
+
+    let monthsToDraw = [];
+    let loopDate = new Date(startMeta.getFullYear(), startMeta.getMonth(), 1);
+
+    while (loopDate <= endMeta) {
+        monthsToDraw.push({
+            year: loopDate.getFullYear(),
+            month: loopDate.getMonth()
+        });
+        loopDate.setMonth(loopDate.getMonth() + 1);
+    }
+
+    let totalHtml = '';
+
+    // 포함된 모든 월 단위로 순회하면서 달력판 적층 출력
+    monthsToDraw.forEach(item => {
+        const year = item.year;
+        const month = item.month;
+
+        const firstDayInstance = new Date(year, month, 1);
+        const startDayOfWeek = firstDayInstance.getDay(); 
+        const totalDaysInMonth = new Date(year, month + 1, 0).getDate(); 
+
+        let html = `
+            <div class="preview-calendar-wrapper">
+                <div class="month-indicator">📅 ${year}년 ${month + 1}월</div>
+                <div class="calendar-grid">
+                    <div class="grid-header sun">일</div>
+                    <div class="grid-header">월</div>
+                    <div class="grid-header">화</div>
+                    <div class="grid-header">수</div>
+                    <div class="grid-header">목</div>
+                    <div class="grid-header">금</div>
+                    <div class="grid-header sat">토</div>
+        `;
+
+        for (let i = 0; i < startDayOfWeek; i++) {
+            html += '<div class="grid-day empty-space"></div>';
+        }
+
+        for (let day = 1; day <= totalDaysInMonth; day++) {
+            const checkDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const currentDayOfWeek = new Date(year, month, day).getDay();
+            
+            let dayClass = '';
+            if (currentDayOfWeek === 0) dayClass = ' sun';
+            if (currentDayOfWeek === 6) dayClass = ' sat';
+
+            const count = scheduleMap[checkDateStr] || 0;
+            if (count > 0) {
+                dayClass += ' has-count';
+            }
+
+            html += `
+                <div class="grid-day${dayClass}">
+                    <span class="day-num">${day}</span>
+                    ${count > 0 ? `<span class="count-badge">${count}건</span>` : ''}
+                </div>
+            `;
+        }
+
+        html += `</div></div>`;
+        totalHtml += html;
+    });
+
+    wrapper.innerHTML = totalHtml;
+}
+
+function generateExcel() {
+    const startDateVal = document.getElementById('startDate').value;
+    if (!startDateVal) {
+        alert("시작 날짜를 입력해 주세요.");
+        return;
+    }
+
+    const scheduleMap = calculateSchedule();
+    if (!scheduleMap || Object.keys(scheduleMap).length === 0) {
+        alert("배정할 수 있는 일정이 없습니다. 설정을 확인해 주세요.");
         return;
     }
 
     const data = [];
-
-    let currentDate = new Date(startDateVal);
-
-    let assignedCount = 0;
-
-    let currentDayCases = 0;
-
-    while (assignedCount < totalCount) {
-
-        const yyyy = currentDate.getFullYear();
-
-        const mm =
-            String(currentDate.getMonth() + 1)
-            .padStart(2, '0');
-
-        const dd =
-            String(currentDate.getDate())
-            .padStart(2, '0');
-
-        const dateStr = `${yyyy}-${mm}-${dd}`;
-
-        const dayOfWeek = currentDate.getDay();
-
-        let isSkip = false;
-
-        // 주말 제외
-        if (
-            excludeWeekends &&
-            (dayOfWeek === 0 || dayOfWeek === 6)
-        ) {
-            isSkip = true;
-        }
-
-        // 추가 제외 날짜
-        if (
-            !isSkip &&
-            customHolidays.includes(dateStr)
-        ) {
-            isSkip = true;
-        }
-
-        // 선택 요일 제외
-        if (
-            !isSkip &&
-            !selectedDays.includes(dayOfWeek)
-        ) {
-            isSkip = true;
-        }
-
-        // 배정
-        if (!isSkip) {
-
+    const sortedDates = Object.keys(scheduleMap).sort();
+    
+    sortedDates.forEach(dateStr => {
+        const count = scheduleMap[dateStr];
+        for (let i = 0; i < count; i++) {
             data.push({
                 receipt_date: dateStr,
                 review_content: ""
             });
-
-            assignedCount++;
-
-            currentDayCases++;
-
-            if (currentDayCases >= dailyCount) {
-
-                currentDate.setDate(
-                    currentDate.getDate() + 1
-                );
-
-                currentDayCases = 0;
-            }
-
-        } else {
-
-            currentDate.setDate(
-                currentDate.getDate() + 1
-            );
-
-            currentDayCases = 0;
         }
-    }
+    });
 
-    // 엑셀 생성
-    const worksheet =
-        XLSX.utils.json_to_sheet(data);
-
-    // 컬럼 넓이
-    worksheet['!cols'] = [
-        { wch: 18 },
-        { wch: 60 }
-    ];
-
-    const workbook =
-        XLSX.utils.book_new();
-
-    // 시트 이름
-    XLSX.utils.book_append_sheet(
-        workbook,
-        worksheet,
-        "영수증날짜"
-    );
-
-    // 파일명
-    const filename = "영수증날짜.xlsx";
-
-    XLSX.writeFile(workbook, filename);
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    worksheet['!cols'] = [{ wch: 18 }, { wch: 60 }];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "영수증날짜");
+    XLSX.writeFile(workbook, "영수증날짜.xlsx");
 }
-
 </script>
 
 </body>
 </html>
-
