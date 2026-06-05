@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>스마트 영수증 배정 일정 생성기</title>
+    <title>영수증 배정 일정 생성기</title>
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
@@ -16,7 +16,7 @@
         body {
             margin: 0;
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Malgun Gothic', sans-serif;
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             color: #1e293b;
             min-height: 100vh;
             display: flex;
@@ -29,17 +29,17 @@
             width: 100%;
             max-width: 720px;
             background: #ffffff;
-            border-radius: 28px;
+            border-radius: 30px;
             padding: 40px;
             box-shadow:
-                0 25px 50px -12px rgba(0, 0, 0, 0.08),
-                0 0 1px rgba(0, 0, 0, 0.04);
+                0 25px 60px -15px rgba(15, 23, 42, 0.06),
+                0 0 2px rgba(15, 23, 42, 0.04);
         }
 
         h2 {
             margin: 0 0 6px;
             text-align: center;
-            font-size: 28px;
+            font-size: 30px;
             font-weight: 800;
             color: #0f172a;
         }
@@ -49,7 +49,7 @@
             font-size: 14px;
             color: #64748b;
             margin-bottom: 36px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .input-group {
@@ -58,7 +58,7 @@
 
         .input-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-size: 14px;
             font-weight: 700;
             color: #334155;
@@ -68,29 +68,30 @@
         .input-group input[type="number"],
         .input-group input[type="text"] {
             width: 100%;
-            height: 52px;
+            height: 54px;
             padding: 0 18px;
             border: 1.5px solid #cbd5e1;
             border-radius: 14px;
             background: #fff;
             font-size: 15px;
             color: #0f172a;
-            font-weight: 500;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .input-group input:focus {
             outline: none;
             border-color: #2563eb;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
         }
 
         .card {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
-            border-radius: 20px;
+            border-radius: 22px;
             padding: 24px;
             margin-bottom: 24px;
+            position: relative;
         }
 
         .card-header-flex {
@@ -103,52 +104,46 @@
         .card-title {
             font-weight: 800;
             font-size: 15px;
-            color: #1e293b;
+            color: #0f172a;
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        /* 🔘 전체 선택/해제 버튼 스타일 */
-        .btn-select-all {
+        .btn-action {
             background: #ffffff;
             border: 1px solid #cbd5e1;
-            padding: 6px 12px;
-            border-radius: 8px;
+            padding: 8px 14px;
+            border-radius: 10px;
             font-size: 12px;
             font-weight: 700;
             color: #475569;
             cursor: pointer;
-            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .btn-select-all:hover {
+        .btn-action:hover {
             background: #f1f5f9;
             border-color: #94a3b8;
             color: #0f172a;
+            transform: translateY(-1px);
         }
-
-        .toggle-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 15px;
-            font-weight: 700;
-            color: #1e293b;
-            cursor: pointer;
-            margin-bottom: 14px;
-            user-select: none;
+        .btn-shuffle {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border-color: #7dd3fc;
+            color: #0369a1;
+            box-shadow: 0 4px 12px rgba(3, 105, 161, 0.1);
         }
-
-        .toggle-label input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #2563eb;
-            cursor: pointer;
+        .btn-shuffle:hover {
+            background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 100%);
+            color: #0369a1;
+            box-shadow: 0 6px 14px rgba(3, 105, 161, 0.18);
         }
 
         .radio-group {
             display: flex;
-            gap: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
             margin-bottom: 4px;
         }
 
@@ -161,13 +156,69 @@
             color: #475569;
             cursor: pointer;
             user-select: none;
+            padding: 10px 14px;
+            background: #fff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.2s ease;
         }
-
+        .radio-label:hover {
+            border-color: #cbd5e1;
+            background: #f1f5f9;
+        }
         .radio-label input[type="radio"] {
             width: 16px;
             height: 16px;
             accent-color: #2563eb;
             cursor: pointer;
+        }
+
+        /* 💫 애니메이션 판넬 */
+        .dynamic-panel {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transform: translateY(-10px) scale(0.98);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dynamic-panel.show {
+            max-height: 200px;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            margin-top: 16px;
+        }
+
+        /* 🤝 미니멀하게 개선된 랜덤 입력 박스 그룹 */
+        .random-clean-box {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        }
+        .random-input-box {
+            flex: 1;
+        }
+        .random-input-box label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+        .random-clean-box input[type="number"] {
+            text-align: center;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .random-wave {
+            font-weight: 700;
+            color: #94a3b8;
+            font-size: 18px;
+            margin-top: 24px; /* 라벨 높이를 고려해 중앙 정렬 맞춤 */
         }
 
         /* 📅 주간 설정 단락 디자인 */
@@ -188,7 +239,7 @@
             gap: 12px;
             position: relative;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 0.5;
+            opacity: 0.45;
         }
 
         .day-name {
@@ -232,24 +283,17 @@
             opacity: 1;
             border-color: #2563eb;
             background: #f0f6ff;
-            box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.12);
             transform: translateY(-2px);
         }
-        .calendar-day-box.active.sun { border-color: #ef4444; background: #fff5f5; box-shadow: 0 8px 16px -4px rgba(239, 68, 68, 0.1); }
-        .calendar-day-box.active.sat { border-color: #2563eb; background: #f0f6ff; box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.1); }
+        .calendar-day-box.active.sun { border-color: #ef4444; background: #fff5f5; box-shadow: 0 8px 20px -4px rgba(239, 68, 68, 0.12); }
+        .calendar-day-box.active.sat { border-color: #2563eb; background: #f0f6ff; box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.12); }
 
         .day-count-input:disabled {
             background: #f1f5f9;
             color: #94a3b8;
             border-color: #e2e8f0;
             font-weight: 500;
-        }
-
-        .hint {
-            margin-top: 12px;
-            font-size: 12px;
-            line-height: 1.6;
-            color: #64748b;
         }
 
         /* 🗓️ 월별 달력 다중 리스트 컨테이너 */
@@ -327,16 +371,16 @@
             font-weight: 800;
             color: #ffffff;
             background: #2563eb;
-            padding: 2px 6px;
-            border-radius: 6px;
+            padding: 3px 6px;
+            border-radius: 7px;
             text-align: center;
             width: 90%;
-            box-shadow: 0 2px 4px rgba(37,99,235,0.2);
+            box-shadow: 0 3px 6px rgba(37,99,235,0.25);
             white-space: nowrap;
         }
         .grid-day.sun.has-count .count-badge {
             background: #ef4444;
-            box-shadow: 0 2px 4px rgba(239,68,68,0.2);
+            box-shadow: 0 3px 6px rgba(239,68,68,0.25);
         }
 
         .grid-day.empty-space {
@@ -363,12 +407,12 @@
             cursor: pointer;
             transition: all 0.25s ease;
             margin-top: 12px;
-            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.35);
         }
 
         button.btn-download:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 28px -5px rgba(37, 99, 235, 0.45);
+            box-shadow: 0 12px 28px -5px rgba(37, 99, 235, 0.5);
         }
 
         @media (max-width: 640px) {
@@ -399,32 +443,47 @@
 
     <div class="card">
         <div class="card-title">⚙️ 건수 설정 방식</div>
-        <div class="radio-group">
+        <div class="radio-group" style="margin-top: 10px;">
             <label class="radio-label">
                 <input type="radio" name="countMode" value="same" checked onclick="toggleMode()"> 
-                모든 요일 동일 배정
+                <span>모든 요일 동일 배정</span>
             </label>
             <label class="radio-label">
                 <input type="radio" name="countMode" value="custom" onclick="toggleMode()"> 
-                요일별 직접 지정
+                <span>요일별 직접 지정</span>
+            </label>
+            <label class="radio-label">
+                <input type="radio" name="countMode" value="random" onclick="toggleMode()"> 
+                <span>🎲 매일 랜덤 배정</span>
             </label>
         </div>
 
-        <div class="input-group" id="globalDailyCountGroup" style="margin-bottom:0; margin-top:18px;">
-            <label for="dailyCount" style="font-size:13px; color:#475569;">기본 하루 배정 건수</label>
-            <input type="number" id="dailyCount" value="3" oninput="updatePreview()">
+        <div class="dynamic-panel show" id="globalDailyCountGroup">
+            <div class="input-group" style="margin-bottom:0;">
+                <label for="dailyCount" style="font-size:13px; color:#475569;">기본 하루 배정 건수</label>
+                <input type="number" id="dailyCount" value="3" oninput="updatePreview()">
+            </div>
+        </div>
+
+        <div class="dynamic-panel" id="randomRangeGroup">
+            <div class="random-clean-box">
+                <div class="random-input-box">
+                    <label for="randomMin">최소 건수</label>
+                    <input type="number" id="randomMin" value="1" min="1" oninput="updatePreview()">
+                </div>
+                <div class="random-wave">~</div>
+                <div class="random-input-box">
+                    <label for="randomMax">최대 건수</label>
+                    <input type="number" id="randomMax" value="4" min="1" oninput="updatePreview()">
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="card">
-        <label class="toggle-label">
-            <input type="checkbox" id="excludeWeekends" checked onchange="handleWeekendToggle()">
-            주말 제외 자동 적용 (토 · 일)
-        </label>
-
-        <div class="input-group" style="margin-bottom:0; margin-top:14px;">
-            <label for="customHolidays" style="font-size:13px; color:#475569;">
-                추가 제외 날짜 (공휴일/휴무일)
+        <div class="input-group" style="margin-bottom:0;">
+            <label for="customHolidays" style="font-size:14px; font-weight:700; color:#334155;">
+                추가 제외 날짜 지정 (공휴일/휴무일)
             </label>
             <input
                 type="text"
@@ -437,8 +496,8 @@
 
     <div class="card">
         <div class="card-header-flex">
-            <div class="card-title">📅 주간 달력 설정</div>
-            <button class="btn-select-all" onclick="toggleSelectAllDays()">전체 선택/해제</button>
+            <div class="card-title">📅 주간 달력 설정 (필요 없는 요일은 해제하세요)</div>
+            <button class="btn-action" onclick="toggleSelectAllDays()">전체 선택/해제</button>
         </div>
         
         <div class="calendar-week">
@@ -488,7 +547,10 @@
     </div>
 
     <div class="card">
-        <div class="card-title">👀 배정 일정 달력 미리보기 (연속 자동 달력)</div>
+        <div class="card-header-flex" style="margin-bottom: 12px;">
+            <div class="card-title">👀 배정 일정 달력 미리보기 (연속 자동 달력)</div>
+            <button class="btn-action btn-shuffle" onclick="forceReRollRandom()">🎲 다시 굴리기</button>
+        </div>
         <div id="previewCalendarWrapper" class="preview-scroll-area">
             <div class="preview-empty">시작 날짜를 선택하시면 실제 달력 모형 일정표가 계산됩니다.</div>
         </div>
@@ -501,30 +563,42 @@
 </div>
 
 <script>
+let randomSeedModifier = 0;
+
 window.onload = function() {
     const checkboxes = document.querySelectorAll('.work-day');
     checkboxes.forEach(cb => updateBoxStyle(cb));
     toggleMode();
-    handleWeekendToggle();
     updatePreview();
 };
 
 function toggleMode() {
     const mode = document.querySelector('input[name="countMode"]:checked').value;
-    const globalGroup = document.getElementById('globalDailyCountGroup');
+    const globalPanel = document.getElementById('globalDailyCountGroup');
+    const randomPanel = document.getElementById('randomRangeGroup');
     const dayInputs = document.querySelectorAll('.day-count-input');
 
     if (mode === 'same') {
-        globalGroup.style.display = 'block';
+        globalPanel.classList.add('show');
+        randomPanel.classList.remove('show');
+        dayInputs.forEach(input => input.disabled = true);
+    } else if (mode === 'random') {
+        globalPanel.classList.remove('show');
+        randomPanel.classList.add('show');
         dayInputs.forEach(input => input.disabled = true);
     } else {
-        globalGroup.style.display = 'none';
+        globalPanel.classList.remove('show');
+        randomPanel.classList.remove('show');
         document.querySelectorAll('.work-day').forEach(cb => syncInputState(cb));
     }
     updatePreview();
 }
 
-// 🔘 전체선택/해제 토글 스크립트
+function forceReRollRandom() {
+    randomSeedModifier = Math.random();
+    updatePreview();
+}
+
 let allSelectedState = true;
 function toggleSelectAllDays() {
     const checkboxes = document.querySelectorAll('.work-day');
@@ -558,24 +632,12 @@ function syncInputState(checkbox) {
     updatePreview();
 }
 
-function handleWeekendToggle() {
-    const excludeWeekends = document.getElementById('excludeWeekends').checked;
-    if (excludeWeekends) {
-        const satCheck = document.getElementById('check-6');
-        const sunCheck = document.getElementById('check-0');
-        satCheck.checked = false;
-        sunCheck.checked = false;
-        syncInputState(satCheck);
-        syncInputState(sunCheck);
-    }
-    updatePreview();
-}
+let lastCalculatedScheduleCache = {};
 
 function calculateSchedule() {
     const startDateVal = document.getElementById('startDate').value;
     const totalCount = parseInt(document.getElementById('totalCount').value);
     const mode = document.querySelector('input[name="countMode"]:checked').value;
-    const excludeWeekends = document.getElementById('excludeWeekends').checked;
     
     const customHolidaysInput = document.getElementById('customHolidays').value;
     const customHolidays = customHolidaysInput.split(',').map(d => d.trim()).filter(d => d !== "");
@@ -585,11 +647,22 @@ function calculateSchedule() {
     const selectedDays = Array.from(document.querySelectorAll('.work-day:checked')).map(el => parseInt(el.value));
     if (selectedDays.length === 0) return [];
 
+    let randMin = 1, randMax = 4;
+    if (mode === 'random') {
+        randMin = parseInt(document.getElementById('randomMin').value) || 1;
+        randMax = parseInt(document.getElementById('randomMax').value) || 4;
+        if(randMin > randMax) {
+            let temp = randMin;
+            randMin = randMax;
+            randMax = temp;
+        }
+    }
+
     const dayCountMap = {};
     if (mode === 'same') {
         const dailyCount = parseInt(document.getElementById('dailyCount').value) || 0;
         selectedDays.forEach(day => dayCountMap[day] = dailyCount);
-    } else {
+    } else if (mode === 'custom') {
         selectedDays.forEach(day => {
             const inputVal = parseInt(document.querySelector(`.day-count-input[data-day="${day}"]`).value);
             dayCountMap[day] = isNaN(inputVal) ? 0 : inputVal;
@@ -601,7 +674,9 @@ function calculateSchedule() {
     let assignedCount = 0;
     let safetyCounter = 0;
 
-    while (assignedCount < totalCount && safetyCounter < 3000) {
+    let dummyVal = randomSeedModifier;
+
+    while (assignedCount < totalCount && safetyCounter < 4000) {
         safetyCounter++;
         const yyyy = currentDate.getFullYear();
         const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
@@ -610,12 +685,24 @@ function calculateSchedule() {
         const dayOfWeek = currentDate.getDay();
 
         let isSkip = false;
-        if (excludeWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) isSkip = true;
-        if (!isSkip && customHolidays.includes(dateStr)) isSkip = true;
-        if (!isSkip && (!selectedDays.includes(dayOfWeek) || !dayCountMap[dayOfWeek] || dayCountMap[dayOfWeek] <= 0)) isSkip = true;
+        if (customHolidays.includes(dateStr)) isSkip = true;
+        if (!isSkip && !selectedDays.includes(dayOfWeek)) isSkip = true;
+
+        if (!isSkip && mode !== 'random') {
+            if (!dayCountMap[dayOfWeek] || dayCountMap[dayOfWeek] <= 0) {
+                isSkip = true;
+            }
+        }
 
         if (!isSkip) {
-            const allowedTodayCount = dayCountMap[dayOfWeek];
+            let allowedTodayCount = 0;
+            
+            if (mode === 'random') {
+                allowedTodayCount = Math.floor(Math.random() * (randMax - randMin + 1)) + randMin;
+            } else {
+                allowedTodayCount = dayCountMap[dayOfWeek];
+            }
+
             const linesToInsert = Math.min(allowedTodayCount, totalCount - assignedCount);
             if (linesToInsert > 0) {
                 scheduleSummary[dateStr] = linesToInsert;
@@ -624,10 +711,11 @@ function calculateSchedule() {
         }
         currentDate.setDate(currentDate.getDate() + 1);
     }
+    
+    lastCalculatedScheduleCache = scheduleSummary;
     return scheduleSummary;
 }
 
-// 🗓️ [대폭 수정] 배정이 완전히 끝날 때까지 포함된 모든 월을 구해서 동적 달력 생성
 function updatePreview() {
     const wrapper = document.getElementById('previewCalendarWrapper');
     const scheduleMap = calculateSchedule();
@@ -641,7 +729,6 @@ function updatePreview() {
         return;
     }
 
-    // 배정된 날짜들의 고유한 년-월 리스트 추출하기
     const activeDates = Object.keys(scheduleMap).sort();
     if(activeDates.length === 0) return;
 
@@ -664,7 +751,6 @@ function updatePreview() {
 
     let totalHtml = '';
 
-    // 포함된 모든 월 단위로 순회하면서 달력판 적층 출력
     monthsToDraw.forEach(item => {
         const year = item.year;
         const month = item.month;
@@ -725,7 +811,7 @@ function generateExcel() {
         return;
     }
 
-    const scheduleMap = calculateSchedule();
+    const scheduleMap = lastCalculatedScheduleCache;
     if (!scheduleMap || Object.keys(scheduleMap).length === 0) {
         alert("배정할 수 있는 일정이 없습니다. 설정을 확인해 주세요.");
         return;
